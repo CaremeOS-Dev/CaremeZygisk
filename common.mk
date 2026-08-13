@@ -25,7 +25,16 @@ MODULE_NAME ?= CaremeZygisk
 NDK_VERSION ?= 29.0.13113456
 ANDROID_HOME ?= $(HOME)/Android/Sdk
 NDK_PATH ?= $(ANDROID_HOME)/ndk/$(NDK_VERSION)
-TOOLCHAIN = $(NDK_PATH)/toolchains/llvm/prebuilt/linux-x86_64
+
+# INFO: Detect host prebuilt triplet. On Windows (git-bash/MSYS) the NDK ships
+#         windows-x86_64; on Linux it ships linux-x86_64.
+ifeq ($(OS),Windows_NT)
+  HOST_PREBUILT := windows-x86_64
+else
+  HOST_PREBUILT := linux-x86_64
+endif
+
+TOOLCHAIN = $(NDK_PATH)/toolchains/llvm/prebuilt/$(HOST_PREBUILT)
 SYSROOT = $(TOOLCHAIN)/sysroot
 
 ifeq ($(TERMUX_VERSION),)

@@ -115,7 +115,7 @@ $(ZIP_FILE): $(MODULE_DONE)
 	@rm -f $@
 
 	@echo "Creating ZIP file..."
-	@cd $(MODULE_OUT) && zip -r9 $@ . -x '*.DS_Store' > /dev/null
+	@cd $(MODULE_OUT) && (zip -r9 $@ . -x '*.DS_Store' > /dev/null 2>&1 || 7z a -tzip $@ . -xr'!*.DS_Store' > /dev/null)
 
 installKsu: build
 	$(ADB_CMD)su -c '/data/adb/ksu/bin/ksud module install $(INSTALL_PATH)'
