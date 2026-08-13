@@ -1,0 +1,7 @@
+id=${moduleId}
+name=${moduleName}
+version=${versionName}
+versionCode=${versionCode}
+author=huanli233,PerformanC
+description=Device-specific Zygisk for CaremeOS 2.0 (SDK27, pure 32-bit armeabi-v7a). Standalone implementation of Zygisk providing Zygisk API support for KernelSU, APatch and Magisk.
+managedFeatures=kernel_umount
