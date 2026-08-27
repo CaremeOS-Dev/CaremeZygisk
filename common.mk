@@ -10,7 +10,7 @@ ARCH ?= armeabi-v7a
 # Both binaries are packaged; runtime switch via /data/adb/caremezygisk/mode.
 INJECTION_METHOD ?= ptrace
 
-VER_NAME ?= v1.0.0
+VER_NAME ?= 0.1.0-rc2
 VER_CODE ?= $(shell git -C "$(ROOT_DIR)" rev-list HEAD --count 2>/dev/null || echo 1)
 COMMIT_HASH ?= $(shell git -C "$(ROOT_DIR)" rev-parse --verify --short HEAD 2>/dev/null || echo unknown)
 
@@ -50,7 +50,7 @@ endif
 BUILD_DIR ?= $(ROOT_DIR)/build
 
 TARGET_armeabi-v7a = armv7a-linux-androideabi$(API_LEVEL)
-# INFO: CaremeZygisk targets pure 32-bit armeabi-v7a only (CaremeOS 2.0 / SDK 27, no arm64 userspace).
+# INFO: CaremeZygisk targets pure 32-bit armeabi-v7a only (CaremeOS 8.1 / SDK 27, no arm64 userspace).
 
 CC_ARCH = $(CC) --target=$(TARGET_$(ARCH)) --sysroot=$(SYSROOT)
 

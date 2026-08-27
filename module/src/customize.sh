@@ -54,10 +54,10 @@ fi
 VERSION=$(grep_prop version "${TMPDIR}/module.prop")
 ui_print "- Installing CaremeZygisk $VERSION"
 
-# INFO: CaremeZygisk targets CaremeOS 2.0 (Android 8.1 / SDK 27, pure 32-bit armeabi-v7a).
+# INFO: CaremeZygisk targets CaremeOS 8.1 (Android 8.1 / SDK 27, pure 32-bit armeabi-v7a).
 if [ "$API" -lt 27 ]; then
   ui_print "! Unsupported sdk: $API"
-  abort "! Minimal supported sdk is 27 (Android 8.1, CaremeOS 2.0)"
+  abort "! Minimal supported sdk is 27 (Android 8.1, CaremeOS 8.1)"
 else
   ui_print "- Device sdk: $API"
 fi
@@ -66,7 +66,7 @@ fi
 if [ "$ARCH" != "arm" ]; then
   ui_print "*********************************************************"
   ui_print "! Unsupported platform: $ARCH"
-  ui_print "! CaremeZygisk is built for armeabi-v7a only (CaremeOS 2.0, pure 32-bit)"
+  ui_print "! CaremeZygisk is built for armeabi-v7a only (CaremeOS 8.1, pure 32-bit)"
   abort    "*********************************************************"
 else
   ui_print "- Device platform: $ARCH (armeabi-v7a, pure 32-bit)"

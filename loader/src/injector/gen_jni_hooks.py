@@ -255,7 +255,7 @@ spec_grapheneos_u = SpecApp('grapheneos_u', [uid, gid, gids, runtime_flags, rlim
     se_info, nice_name, is_child_zygote, instruction_set, app_data_dir, is_top_app, pkg_data_info_list,
     whitelisted_data_info_list, mount_data_dirs, mount_storage_dirs, mount_sysprop_overrides, Anon(jlongArray)])
 
-# INFO: CaremeOS 2.0 (SDK 27 backport of nativeSpecializeAppProcess, 10-arg, NO is_child_zygote).
+# INFO: CaremeOS 8.1 (SDK 27 backport of nativeSpecializeAppProcess, 10-arg, NO is_child_zygote).
 #         Confirmed in firmware: libandroid_runtime.so @0x148473 signature
 #         (II[II[[IILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V.
 #         AOSP only ships nativeSpecializeAppProcess from Q/SDK29; CaremeOS backported it to 8.1

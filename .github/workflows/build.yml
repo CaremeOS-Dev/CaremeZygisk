@@ -64,5 +64,5 @@ jobs:
           gh release create "$TAG" \
             --latest \
             --title "CaremeZygisk ${TAG}" \
-            --notes "CaremeOS 2.0 设备专用 Zygisk（ReZygisk 基底，纯 32 位 armeabi-v7a，ptrace + native-bridge 双路注入）。构建自 ${{ github.sha }}。" \
+            --notes "CaremeOS 8.1 设备专用 Zygisk（Android 8.1 / SDK 27，纯 32 位 armeabi-v7a，ptrace + native-bridge 双路注入；已测 CaremeOS 1.0 & 2.0）。构建自 ${{ github.sha }}。" \
             build/out/*.zip

@@ -1,78 +1,63 @@
-# ReZygisk
+# CaremeZygisk
 
-[Español(Argentina)](/READMEs/README_es-AR.md)|[Bahasa Indonesia](/READMEs/README_id-ID.md)|[Português Brasileiro](/READMEs/README_pt-BR.md)|[Українська](/READMEs/README_uk-UA.md)|[Tiếng Việt](/READMEs/README_vi-VN.md)|
+面向 **CaremeOS 8.1**（基于 Android 8.1 / SDK 27 的小天才 / XTC 儿童手表 ROM）的**设备专用 Zygisk**。已在 **CaremeOS 1.0 与 2.0** 上测试可用 —— 版本号按 Android 底座 8.1 命名，而非某一个 CaremeOS 发行版本。
 
-ReZygisk is a fork of Zygisk Next, a standalone implementation of Zygisk, providing Zygisk API support for KernelSU, APatch and Magisk.
+基底为 [ReZygisk](https://github.com/PerformanC/ReZygisk)（Zygisk 的独立 C 实现），针对 CaremeOS 的魔改 framework、纯 32 位环境与厂商检测做了适配。
 
-The codebase has been rewritten to C entirely, bringing not only a much cleaner codebase that is easier to follow, but also a lighter binaries that are also faster. Custom linkers also have been introduced to future-proof ReZygisk against future detections, not using system linker at all in normal circunstances, defeating any linker-based detection.
+## 目标设备与约束
 
-## Why?
+- **系统**：CaremeOS 8.1（Android 8.1 / SDK 27），已测 CaremeOS 1.0、2.0
+- **架构**：纯 32 位，仅 `armeabi-v7a`（无 arm64 用户空间，只有 `app_process32`）
+- **Root**：三根兼容 —— Magisk / KernelSU / APatch
+- **SELinux**：宽容（permissive）
 
-The latest releases of Zygisk Next are not open-source, reserving entirely the code for its developers. Not only does that limit our ability to contribute to the project, but also impossibilities the audit of the code, which is a major security concern, as Zygisk Next is a module that runs with superuser (root) privileges, having access to the entire system.
+## 能做什么
 
-The Zygisk Next developers are famous and trusted in the Android community, however, this doesn't mean that the code is not malicious or vulnerable. We (PerformanC) understand they have their reasons to keep the code closed-source, but we believe the contrary.
+- 加载现有 Zygisk 模块（如 LSPosed / Vector）—— 完整 Zygisk API v5 兼容
+- 隐藏 root / DenyList（mount 命名空间隔离）
+- 绕过 CaremeOS 自身的注入 / 调试检测
+- Zygisk 自身隐藏（loader 库、daemon、ptrace 痕迹）
 
-## Advantages
+## 注入方式（双路并存）
 
-- FOSS (Forever)
+构建期同时打包两条注入路径，运行期通过 `/data/adb/caremezygisk/mode` 切换：
 
-## Dependencies
+- **ptrace（主）**：monitor 追踪 init，捕获 `app_process32`，ptrace-seize zygote，远程加载 `libzygisk.so`。不触碰 `ro.dalvik.vm.native.bridge`，属性零痕迹。
+- **native-bridge（备）**：设 `ro.dalvik.vm.native.bridge`，NativeBridgeCallbacks v2 构造器加载 payload；外部观察者存在一次指纹窗口。
 
-| Tool            | Description                            |
-|-----------------|----------------------------------------|
-| `Android NDK`   | Native Development Kit for Android     |
+## 依赖
 
-### C Dependencies
+| 工具 | 说明 |
+|------|------|
+| Android NDK | `29.0.13113456`（见 `common.mk` 的 `NDK_VERSION`） |
+| python3 | 打包 / 签名 `scripts/sign.py` |
+| zip / 7z | 打包 |
 
-| Dependency  | Description                   |
-|-------------|-------------------------------|
-| `PLTI`      | Simple PLT Hook for Android   |
-| `CSOLoader` | SOTA Linux custom linker      |
+vendored C 依赖：`PLTI`（Android PLT hook）、`CSOLoader`（自定义 linker，绕过 linker 检测）。
 
-## Installation
+## 构建
 
-### 1. Select the right zip
+```bash
+export ANDROID_HOME=~/Android/Sdk   # 指向本机 SDK
+make all       # debug + release，产物落在 build/out/
+make release   # 仅 release
+make debug     # 仅 debug
+```
 
-The selection of the build/zip is important, as it will determine how hidden and stable ReZygisk will be. This, however, is not a hard task:
+产物：`build/out/CaremeZygisk-<versionName>-<versionCode>-<hash>-<type>.zip`，仅含 `armeabi-v7a`。
+CI（GitHub Actions）在 push / PR / tag 上自动 `make all` 并上传 artifact，`v*` tag 直接发 release。
 
-- `release` should be the one chosen for most cases, it removes app-level logging and offers more optimized binaries.
-- `debug`, however, offers the opposite, with heavy logging and no optimizations, For this reason, **you should only use it for debugging purposes** and **when obtaining logs for creating an Issue**.
+## 安装
 
-As for branches, you should always use the `main` branch, unless told otherwise by the developers, or if you want to test upcoming features and are aware of the risks involved.
+1. 选包：日常用 `release`，排障用 `debug`（日志更全，仅用于排障 / 提 Issue）。
+2. 用 root 管理器（Magisk / KernelSU / APatch）刷入 zip，检查安装日志无误后重启。
+3. **Magisk 用户务必关闭内置 Zygisk**（设置里关掉 Zygisk 选项），否则冲突。
+4. 重启后在模块描述里确认 daemon 是否在跑。
 
-### 2. Flash the zip
+## 状态
 
-After choosing the right build, you should flash it using your current root manager, like Magisk or KernelSU. You can do this by going to the `Modules` section of your root manager and selecting the zip you downloaded.
+设备专用，持续迭代。针对具体固件的厂商检测适配（Zygote JNI 签名、ArtMethod 布局、anti-ptrace、`native.bridge` 属性检测、maps 扫描、`app_process32` 结构）按机型确认后启用。
 
-After flashing, check the installation logs to ensure there are no errors, and if everything is fine, you can reboot your device.
+## 致谢与许可
 
-> [!WARNING]
-> Magisk users should disable built-in Zygisk, as it will conflict with ReZygisk. This can be done by going to the `Settings` section of Magisk and disabling the `Zygisk` option.
-
-### 3. Verify the installation
-
-After rebooting, you can verify if ReZygisk is working properly by checking the module description in the `Modules` section of your root manager. The description should indicate that the necessary daemons are running. For example, if your environment supports both 64-bit and 32-bit, it should look similar to this: `[Monitor: ✅, ReZygisk 64-bit: ✅, ReZygisk 32-bit: ✅] Standalone implementation of Zygisk.`
-
-## Translation
-
-There are currently two different ways to contribute translations for ReZygisk:
-
-- For translations of the README, you can create a new file in the `READMEs` folder, following the naming convention of `README_<language>.md`, where `<language>` is the language code (e.g., `README_pt-BR.md` for Brazilian Portuguese), and open a pull request to the `main` branch with your changes.
-- For translations of the ReZygisk WebUI, you should first contribute to our [Crowdin](https://crowdin.com/project/rezygisk). Once approved retrieve the `.json` file from there and open a pull request with your changes -- adding the `.json` file to the `webroot/lang` folder and your credits to the `TRANSLATOR.md` file, in alphabetic order.
-
-## Support
-
-For any question related to ReZygisk or other PerformanC projects, feel free to join any of the following channels below:
-
-- Discord Channel: [PerformanC](https://discord.gg/uPveNfTuCJ)
-- ReZygisk Telegram Channel: [@rezygisk](https://t.me/rezygisk)
-- PerformanC Telegram Channel: [@performancorg](https://t.me/performancorg)
-- PerformanC Signal Group: [@performanc](https://signal.group/#CjQKID3SS8N5y4lXj3VjjGxVJnzNsTIuaYZjj3i8UhipAS0gEhAedxPjT5WjbOs6FUuXptcT)
-
-## Contribution
-
-It is mandatory to follow PerformanC's [Contribution Guidelines](https://github.com/PerformanC/contributing) to contribute to ReZygisk. Following its Security Policy, Code of Conduct, and syntax standard.
-
-## License
-
-ReZygisk is licensed under [AGPL 3.0](./LICENSE). You can read more about it on [Open Source Initiative](https://opensource.org/licenses/AGPL-3.0).
+基于 PerformanC 的 [ReZygisk](https://github.com/PerformanC/ReZygisk)。遵循 [AGPL 3.0](./LICENSE)。

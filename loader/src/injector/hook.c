@@ -1226,7 +1226,31 @@ static void rz_cleanup(struct zygisk_context *ctx) {
 
   if (!is_zygote_child(ctx)) return;
 
-  should_unmap_zygisk = true;
+  /* INFO: CaremeOS fix — system_server fork-storms dozens of service threads
+             immediately after postServerSpecialize (ActivityManagerService,
+             PackageManagerService, WindowManagerService, ...), each racing to
+             call pthread_attr_setstacksize concurrently. The self-unload path
+             below assumes the first pthread_attr_setstacksize call after
+             specialize is a safe moment to munmap(start_addr, block_size) —
+             true for a mostly-single-threaded app process, but a TOCTOU race
+             on system_server: another thread can be mid-call into code that
+             lives inside this mapping (or holding a stale Api function
+             pointer LSPosed cached during postServerSpecialize) at the exact
+             moment the main thread munmaps it out from under everyone,
+             producing a SIGSEGV that kills system_server and reboots zygote.
+             Riru never hits this because its core library is resident and
+             never self-unmaps. Mirror that here: keep libzygisk.so resident
+             for system_server (should_unmap_zygisk/enable_unloader stay
+             false, so the unmap branch in the pthread_attr_setstacksize PLT
+             hook is permanently skipped for this process) — the memory cost
+             is negligible for a singleton, whole-uptime process, and it
+             removes the race entirely. App processes are unaffected and keep
+             self-unloading/self-hiding as before. */
+  if (FLAG_GET(ctx, SERVER_FORK_AND_SPECIALIZE)) {
+    LOGD("system_server detected: skipping CaremeZygisk self-unload (staying resident to avoid the postServerSpecialize multi-thread munmap race)");
+  } else {
+    should_unmap_zygisk = true;
+  }
 
   /* INFO: Unhook JNI methods */
   for (size_t i = 0; i < jni_hook_list_count; i++) {

@@ -53,7 +53,7 @@ fi
 case "$INJECTION_MODE" in
   native_bridge)
     log -p i -t "caremezygisk" "Injection mode: native_bridge (backup path)"
-    # INFO: CaremeZygisk targets pure 32-bit armeabi-v7a (CaremeOS 2.0, no arm64 userspace).
+    # INFO: CaremeZygisk targets pure 32-bit armeabi-v7a (CaremeOS 8.1, no arm64 userspace).
     #         Only lib/armeabi-v7a is shipped, so the native-bridge loader is placed at the
     #         32-bit system lib path via the module overlay.
     BRIDGE_PROP="ro.dalvik.vm.native.bridge"
